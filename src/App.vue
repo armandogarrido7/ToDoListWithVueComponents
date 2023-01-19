@@ -47,20 +47,25 @@ var pendingTasks=ref(getPendingTasks());
   }
 
   function searchTasks(searchTask='', priorityFilter='') {
+    priorityFilter = {
+      'high':priorityFilter[2].value,
+      'normal':priorityFilter[1].value,
+      'low':priorityFilter[0].value,
+    }
     var mytasksToShow = tasks.value;
-    if (searchTask.value.trim() || priorityFilter.value){
-      if (searchTask.value.trim()){
+    if (searchTask.value.trim()){
         mytasksToShow = mytasksToShow.filter(task => task.name.toLowerCase().includes(searchTask.value));
-      }
-      if (priorityFilter.value){
-        console.log("filtro de prioridad activo")
-        mytasksToShow = mytasksToShow.filter(task => task.priority == priorityFilter.value);
-      }
-      tasksToShow.value=mytasksToShow;
     }
     else{
-      tasksToShow.value=getAllTasks();
+      mytasksToShow=getAllTasks();
     }
+    let filteredTasks = [];
+    for (let task of mytasksToShow){
+        if (priorityFilter[task.priority]){
+          filteredTasks.push(task);
+        }
+    }
+    tasksToShow.value=filteredTasks;
   }
   function getPendingTasks() {
     return  tasks.value.filter(task => task.done == false).length;
@@ -110,8 +115,11 @@ var pendingTasks=ref(getPendingTasks());
   <appHeader :totalTasks="totalTasks" :pendingTasks="pendingTasks" @newTask="newTask" @removeFinishedTasks="removeFinishedTasks" @searchTasks="searchTasks"/>
   <hr>
   <div id="tasks">
-    <task v-for="task in tasksToShow" :task="task" @removeTask="removeTask" @toggleDone="toggleDone" @setTaskPriority="setTaskPriority"/>
+    <task v-if="tasksToShow.length > 0" v-for="task in tasksToShow" :task="task" @removeTask="removeTask" @toggleDone="toggleDone" @setTaskPriority="setTaskPriority"/>
+    <h1 v-else>No Tasks To Show{{ tasksToShow.value }}</h1>
+
   </div>
   <appFooter></appFooter>
+  <RouterView></RouterView>
 </template>
 
